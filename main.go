@@ -828,6 +828,12 @@ func createLLM() (llms.Model, error) {
 			openai.WithHTTPClient(createCustomHTTPClient()),
 		}
 
+		// Allow overriding the API base URL for self-hosted or proxy deployments
+		if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+			options = append(options, openai.WithBaseURL(baseURL))
+		}
+
+		// Azure-specific configuration (additional to the base URL, which should already be set)
 		if strings.ToLower(os.Getenv("OPENAI_API_TYPE")) == "azure" {
 			baseURL := os.Getenv("OPENAI_BASE_URL")
 			if baseURL == "" {
@@ -835,7 +841,6 @@ func createLLM() (llms.Model, error) {
 			}
 			options = append(options,
 				openai.WithAPIType(openai.APITypeAzure),
-				openai.WithBaseURL(baseURL),
 				openai.WithEmbeddingModel("this-is-not-used"), // This is mandatory for Azure by langchain-go
 			)
 		}
@@ -913,6 +918,12 @@ func createVisionLLM() (llms.Model, error) {
 			openai.WithHTTPClient(createCustomHTTPClient()),
 		}
 
+		// Allow overriding the API base URL for self-hosted or proxy deployments
+		if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+			options = append(options, openai.WithBaseURL(baseURL))
+		}
+
+		// Azure-specific configuration (additional to the base URL, which should already be set)
 		if strings.ToLower(os.Getenv("OPENAI_API_TYPE")) == "azure" {
 			baseURL := os.Getenv("OPENAI_BASE_URL")
 			if baseURL == "" {
@@ -920,8 +931,7 @@ func createVisionLLM() (llms.Model, error) {
 			}
 			options = append(options,
 				openai.WithAPIType(openai.APITypeAzure),
-				openai.WithBaseURL(baseURL),
-				openai.WithEmbeddingModel("this-is-not-used"), // This is mandatory for Azure by langchain-go
+				openai.WithEmbeddingModel("this-is-not-used"), // Mandatory for Azure by langchaingo
 			)
 		}
 

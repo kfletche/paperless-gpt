@@ -135,10 +135,30 @@ func createOpenAIClient(config Config) (llms.Model, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("OpenAI API key is not set")
 	}
-	return openai.New(
+
+	options := []openai.Option{
 		openai.WithModel(config.VisionLLMModel),
 		openai.WithToken(apiKey),
-	)
+	}
+
+	// Allow overriding the API base URL for self-hosted or proxy deployments
+	if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+		options = append(options, openai.WithBaseURL(baseURL))
+	}
+
+	// Azure-specific configuration (additional to the base URL, which should already be set)
+	if strings.ToLower(os.Getenv("OPENAI_API_TYPE")) == "azure" {
+		baseURL := os.Getenv("OPENAI_BASE_URL")
+		if baseURL == "" {
+			return nil, fmt.Errorf("OPENAI_BASE_URL is required for Azure OpenAI")
+		}
+		options = append(options,
+			openai.WithAPIType(openai.APITypeAzure),
+			openai.WithEmbeddingModel("this-is-not-used"), // Mandatory for Azure by langchaingo
+		)
+	}
+
+	return openai.New(options...)
 }
 
 // createOllamaClient creates a new Ollama vision model client
